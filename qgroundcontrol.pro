@@ -1164,6 +1164,13 @@ PX4FirmwarePlugin {
         src/FirmwarePlugin/PX4 \
 
     HEADERS+= \
+        src/AutoPilotPlugins/PX4/Actuators/ActuatorComponent.h \
+        src/AutoPilotPlugins/PX4/Actuators/ActuatorsController.h \
+        src/AutoPilotPlugins/PX4/Actuators/ActuatorOutputs.h \
+        src/AutoPilotPlugins/PX4/Actuators/ActuatorTesting.h \
+        src/AutoPilotPlugins/PX4/Actuators/Common.h \
+        src/AutoPilotPlugins/PX4/Actuators/GeometryImage.h \
+        src/AutoPilotPlugins/PX4/Actuators/Mixer.h \
         src/AutoPilotPlugins/PX4/AirframeComponent.h \
         src/AutoPilotPlugins/PX4/AirframeComponentAirframes.h \
         src/AutoPilotPlugins/PX4/AirframeComponentController.h \
@@ -1185,6 +1192,13 @@ PX4FirmwarePlugin {
         src/FirmwarePlugin/PX4/PX4ParameterMetaData.h \
 
     SOURCES += \
+        src/AutoPilotPlugins/PX4/Actuators/ActuatorComponent.cc \
+        src/AutoPilotPlugins/PX4/Actuators/ActuatorsController.cc \
+        src/AutoPilotPlugins/PX4/Actuators/ActuatorOutputs.cc \
+        src/AutoPilotPlugins/PX4/Actuators/ActuatorTesting.cc \
+        src/AutoPilotPlugins/PX4/Actuators/Common.cc \
+        src/AutoPilotPlugins/PX4/Actuators/GeometryImage.cc \
+        src/AutoPilotPlugins/PX4/Actuators/Mixer.cc \
         src/AutoPilotPlugins/PX4/AirframeComponent.cc \
         src/AutoPilotPlugins/PX4/AirframeComponentAirframes.cc \
         src/AutoPilotPlugins/PX4/AirframeComponentController.cc \

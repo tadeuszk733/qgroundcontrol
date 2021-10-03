@@ -46,6 +46,7 @@
 #include "FTPManager.h"
 #include "ImageProtocolManager.h"
 
+class ActuatorsController;
 class EventHandler;
 class UAS;
 class UASInterface;
@@ -313,6 +314,7 @@ public:
     Q_PROPERTY(FactGroup*           localPosition   READ localPositionFactGroup     CONSTANT)
     Q_PROPERTY(FactGroup*           localPositionSetpoint READ localPositionSetpointFactGroup CONSTANT)
     Q_PROPERTY(QmlObjectListModel*  batteries       READ batteries                  CONSTANT)
+    Q_PROPERTY(ActuatorsController*  actuatorsController READ actuatorsController   CONSTANT)
 
     Q_PROPERTY(int      firmwareMajorVersion        READ firmwareMajorVersion       NOTIFY firmwareVersionChanged)
     Q_PROPERTY(int      firmwareMinorVersion        READ firmwareMinorVersion       NOTIFY firmwareVersionChanged)
@@ -590,6 +592,8 @@ public:
     QObject*        sysStatusSensorInfo         () { return &_sysStatusSensorInfo; }
     bool            requiresGpsFix              () const { return static_cast<bool>(_onboardControlSensorsPresent & SysStatusSensorGPS); }
     bool            hilMode                     () const { return _base_mode & MAV_MODE_FLAG_HIL_ENABLED; }
+    void            setActuatorsController      (ActuatorsController* controller) { _actuatorsController = controller; }
+    ActuatorsController* actuatorsController    () const { return _actuatorsController; }
 
     /// Get the maximum MAVLink protocol version supported
     /// @return the maximum version
@@ -1314,6 +1318,7 @@ private:
     FTPManager*                     _ftpManager                 = nullptr;
     ImageProtocolManager*           _imageProtocolManager       = nullptr;
     InitialConnectStateMachine*     _initialConnectStateMachine = nullptr;
+    ActuatorsController*            _actuatorsController        = nullptr;
 
     static const char* _rollFactName;
     static const char* _pitchFactName;
