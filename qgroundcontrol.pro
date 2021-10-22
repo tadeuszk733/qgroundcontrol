@@ -1171,6 +1171,7 @@ PX4FirmwarePlugin {
         src/AutoPilotPlugins/PX4/Actuators/Common.h \
         src/AutoPilotPlugins/PX4/Actuators/GeometryImage.h \
         src/AutoPilotPlugins/PX4/Actuators/Mixer.h \
+        src/AutoPilotPlugins/PX4/Actuators/MotorAssignmentController.h \
         src/AutoPilotPlugins/PX4/AirframeComponent.h \
         src/AutoPilotPlugins/PX4/AirframeComponentAirframes.h \
         src/AutoPilotPlugins/PX4/AirframeComponentController.h \
@@ -1199,6 +1200,7 @@ PX4FirmwarePlugin {
         src/AutoPilotPlugins/PX4/Actuators/Common.cc \
         src/AutoPilotPlugins/PX4/Actuators/GeometryImage.cc \
         src/AutoPilotPlugins/PX4/Actuators/Mixer.cc \
+        src/AutoPilotPlugins/PX4/Actuators/MotorAssignmentController.cc \
         src/AutoPilotPlugins/PX4/AirframeComponent.cc \
         src/AutoPilotPlugins/PX4/AirframeComponentAirframes.cc \
         src/AutoPilotPlugins/PX4/AirframeComponentController.cc \

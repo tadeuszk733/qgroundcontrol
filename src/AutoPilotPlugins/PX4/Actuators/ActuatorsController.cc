@@ -20,10 +20,14 @@
 using namespace ActuatorOutputs;
 
 ActuatorsController::ActuatorsController(Vehicle* vehicle)
-    : _mixerController(vehicle->parameterManager()), _vehicle(vehicle)
+    : _actuatorTestController(vehicle), _mixerController(vehicle->parameterManager()),
+      _motorAssignmentController(nullptr, vehicle, _actuatorOutputs), _vehicle(vehicle)
 {
     connect(&_mixerController, &Mixer::MixerController::paramChanged, this, &ActuatorsController::parametersChanged);
     qRegisterMetaType<ActuatorsController*>("ActuatorsController*");
+    connect(&_motorAssignmentController, &MotorAssignmentController::activeChanged, this, &ActuatorsController::motorAssignmentActiveChanged);
+    connect(&_motorAssignmentController, &MotorAssignmentController::messageChanged, this, &ActuatorsController::motorAssignmentMessageChanged);
+    connect(&_motorAssignmentController, &MotorAssignmentController::onAbort, this, [this]() { highlightActuators(false); });
 }
 
 void ActuatorsController::imageClicked(float x, float y)
@@ -32,14 +36,22 @@ void ActuatorsController::imageClicked(float x, float y)
     int motorIndex = provider->getHighlightedMotorIndexAtPos(QPointF{ x, y });
     qCDebug(ActuatorsConfigLog) << "Image clicked:" << x << "," << y << "motor index:" << motorIndex;
 
-    QList<ActuatorGeometry>& actuators = provider->actuators();
-    for (auto& actuator : actuators) {
-        if (actuator.type == ActuatorGeometry::Type::Motor && actuator.index == motorIndex) {
-            actuator.renderOptions.highlight = false;
-            // TODO: motor got clicked...
+    if (_motorAssignmentController.active()) {
+        QList<ActuatorGeometry>& actuators = provider->actuators();
+        bool found = false;
+        for (auto& actuator : actuators) {
+            if (actuator.type == ActuatorGeometry::Type::Motor && actuator.index == motorIndex) {
+                actuator.renderOptions.highlight = false;
+                found = true;
+            }
+        }
+        updateAirframeImage();
+
+        if (found) {
+            // call this outside of the loop as it might lead to an actuator refresh
+            _motorAssignmentController.selectMotor(motorIndex);
         }
     }
-    updateAirframeImage();
 }
 
 void ActuatorsController::selectActuatorOutput(int index)
@@ -501,4 +513,48 @@ void ActuatorsController::subscribeFact(Fact* fact)
 bool ActuatorsController::showUi() const
 {
     return _hasMetadata && _showUi.evaluate();
+}
+
+bool ActuatorsController::initMotorAssignment()
+{
+    GeometryImage::VehicleGeometryImageProvider* provider = GeometryImage::VehicleGeometryImageProvider::instance();
+    int numMotors = 0;
+    QList<ActuatorGeometry>& actuators = provider->actuators();
+    for (const auto& actuator : actuators) {
+        if (actuator.type == ActuatorGeometry::Type::Motor) {
+            ++numMotors;
+        }
+    }
+
+    // get the minimum function for motors
+    bool ret = false;
+    auto iter = _mixerController.actuatorTypes().find("motor");
+    if (iter == _mixerController.actuatorTypes().end()) {
+        qWarning() << "Actuator type 'motor' not found";
+    } else {
+        ret = _motorAssignmentController.initAssignment(_selectedActuatorOutput, iter->functionMin, numMotors);
+    }
+    return ret;
+}
+
+void ActuatorsController::highlightActuators(bool highlight)
+{
+    GeometryImage::VehicleGeometryImageProvider* provider = GeometryImage::VehicleGeometryImageProvider::instance();
+    QList<ActuatorGeometry>& actuators = provider->actuators();
+    for (auto& actuator : actuators) {
+        if (actuator.type == ActuatorGeometry::Type::Motor) {
+            actuator.renderOptions.highlight = highlight;
+        }
+    }
+    updateAirframeImage();
+}
+
+void ActuatorsController::startMotorAssignment()
+{
+    highlightActuators(true);
+    _motorAssignmentController.start();
+}
+void ActuatorsController::abortMotorAssignment()
+{
+    _motorAssignmentController.abort();
 }

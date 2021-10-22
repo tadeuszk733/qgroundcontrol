@@ -17,6 +17,7 @@
 #include "ActuatorTesting.h"
 #include "Mixer.h"
 #include "GeometryImage.h"
+#include "MotorAssignmentController.h"
 
 
 class ActuatorsController : public QObject
@@ -30,6 +31,8 @@ public:
     Q_PROPERTY(bool isMultirotor                           READ isMultirotor              CONSTANT)
     Q_PROPERTY(bool imageRefreshFlag                       READ imageRefreshFlag          NOTIFY imageRefreshFlagChanged)
     Q_PROPERTY(bool hasUnsetRequiredFunctions              READ hasUnsetRequiredFunctions NOTIFY hasUnsetRequiredFunctionsChanged)
+    Q_PROPERTY(bool motorAssignmentActive                  READ motorAssignmentActive     NOTIFY motorAssignmentActiveChanged)
+    Q_PROPERTY(QString motorAssignmentMessage              READ motorAssignmentMessage    NOTIFY motorAssignmentMessageChanged)
 
     Q_PROPERTY(ActuatorTesting::ActuatorTestController* actuatorTestController  READ actuatorTestController    CONSTANT)
     Q_PROPERTY(Mixer::MixerController* mixerController                          READ mixerController           CONSTANT)
@@ -56,6 +59,14 @@ public:
 
     bool showUi() const;
 
+
+    Q_INVOKABLE bool initMotorAssignment();
+    Q_INVOKABLE void startMotorAssignment();
+    Q_INVOKABLE void spinCurrentMotor() { _motorAssignmentController.spinCurrentMotor(); }
+    Q_INVOKABLE void abortMotorAssignment();
+    bool motorAssignmentActive() const { return _motorAssignmentController.active(); }
+    const QString& motorAssignmentMessage() const { return _motorAssignmentController.message(); }
+
 public slots:
     void parametersChanged();
 
@@ -64,6 +75,8 @@ signals:
     void selectedActuatorOutputChanged();
     void imageRefreshFlagChanged();
     void hasUnsetRequiredFunctionsChanged();
+    void motorAssignmentActiveChanged();
+    void motorAssignmentMessageChanged();
 
 private:
     void parseJson(const QJsonDocument& json);
@@ -74,12 +87,15 @@ private:
 
     Fact* getFact(const QString& paramName);
 
+    void highlightActuators(bool highlight);
+
     QSet<Fact*> _subscribedFacts{};
     bool _hasMetadata{false};
     Condition _showUi;
     QmlObjectListModel* _actuatorOutputs = new QmlObjectListModel(this); ///< list of ActuatorOutputs::ActuatorOutput*
     ActuatorTesting::ActuatorTestController _actuatorTestController;
     Mixer::MixerController _mixerController;
+    MotorAssignmentController _motorAssignmentController;
     bool _hasUnsetRequiredFunctions{false};
     bool _imageRefreshFlag{false}; ///< indicator to QML to reload the image
     int _selectedActuatorOutput{0};

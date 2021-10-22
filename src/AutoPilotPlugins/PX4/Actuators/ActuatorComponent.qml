@@ -1,5 +1,6 @@
 import QtQuick 2.12
 import QtQuick.Controls 1.2
+import QtQuick.Dialogs 1.2
 import QtQuick.Layouts 1.3
 
 import QGroundControl               1.0
@@ -48,6 +49,7 @@ SetupPage {
                             leftMargin:     _margins
                             verticalCenter: parent.verticalCenter
                         }
+                        enabled:            !safetySwitch.checked && !_actuatorsController.motorAssignmentActive
                         Repeater {
                             model:          _actuatorsController.mixerController.groups
                             ColumnLayout {
@@ -183,7 +185,8 @@ SetupPage {
                             visible: _actuatorsController.actuatorTestController.actuators.count > 0
 
                             Switch {
-                                id: safetySwitch
+                                id:      safetySwitch
+                                enabled: !_actuatorsController.motorAssignmentActive &&  !_actuatorsController.actuatorTestController.hadFailure
                                 Connections {
                                     target: _actuatorsController.actuatorTestController
                                     onHadFailureChanged: {
@@ -306,8 +309,63 @@ SetupPage {
                         spacing:          _margins
                         anchors.centerIn: parent
 
+                        // Motor assignment
+                        Row {
+                            visible:           _actuatorsController.isMultirotor
+                            enabled:           !safetySwitch.checked
+                            anchors.right:     parent.right
+                            spacing:           _margins
+                            QGCButton {
+                                text:          qsTr("Identify & Assign Motors")
+                                visible:       !_actuatorsController.motorAssignmentActive
+                                onClicked: {
+                                    var success = _actuatorsController.initMotorAssignment()
+                                    if (success) {
+                                        motorAssignmentConfirmDialog.open()
+                                    } else {
+                                        motorAssignmentFailureDialog.open()
+                                    }
+                                }
+                                MessageDialog {
+                                    id:         motorAssignmentConfirmDialog
+                                    visible:    false
+                                    icon:       StandardIcon.Warning
+                                    standardButtons: StandardButton.Yes | StandardButton.No
+                                    title:      qsTr("Motor Order Identification and Assignment")
+                                    text: _actuatorsController.motorAssignmentMessage
+                                    onYes: {
+                                        console.log(_actuatorsController.motorAssignmentActive)
+                                        _actuatorsController.startMotorAssignment()
+                                    }
+                                }
+                                MessageDialog {
+                                    id:         motorAssignmentFailureDialog
+                                    visible:    false
+                                    icon:       StandardIcon.Critical
+                                    standardButtons: StandardButton.Ok
+                                    title:      qsTr("Error")
+                                    text: _actuatorsController.motorAssignmentMessage
+                                }
+                            }
+                            QGCButton {
+                                text:          qsTr("Spin Motor Again")
+                                visible:       _actuatorsController.motorAssignmentActive
+                                onClicked: {
+                                    _actuatorsController.spinCurrentMotor()
+                                }
+                            }
+                            QGCButton {
+                                text:          qsTr("Abort")
+                                visible:       _actuatorsController.motorAssignmentActive
+                                onClicked: {
+                                    _actuatorsController.abortMotorAssignment()
+                                }
+                            }
+                        }
+
                         Column {
-                            enabled:          !safetySwitch.checked
+                            enabled:          !safetySwitch.checked && !_actuatorsController.motorAssignmentActive
+                            spacing:          _margins
 
                             RowLayout {
                                 property var enableParam:     selActuatorOutput.actuatorOutput.enableParam
