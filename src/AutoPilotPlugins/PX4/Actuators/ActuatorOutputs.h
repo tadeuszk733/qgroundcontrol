@@ -15,6 +15,7 @@
 #include <functional>
 
 #include "Common.h"
+#include "ActuatorActions.h"
 
 #include <QmlObjectListModel.h>
 
@@ -169,6 +170,9 @@ public:
     void addConfigParam(ConfigParameter* param);
     QmlObjectListModel* configParams() { return _params; }
 
+    const QList<ActuatorActions::Config>& actions() const { return _actions; }
+    void addAction(const ActuatorActions::Config& action) { _actions.append(action); }
+
 signals:
     void channelsChanged();
     void channelConfigsChanged();
@@ -180,6 +184,8 @@ private:
 
     ConfigParameter* _primaryParam{nullptr};
     QmlObjectListModel* _params  = new QmlObjectListModel(this); ///< list of ConfigParameter*
+
+    QList<ActuatorActions::Config> _actions;
 };
 
 class ActuatorOutput : public QObject

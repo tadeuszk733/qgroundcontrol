@@ -28,6 +28,7 @@ public:
     ~ActuatorsController() = default;
 
     Q_PROPERTY(QmlObjectListModel* actuatorOutputs         READ actuatorOutputs           NOTIFY actuatorOutputsChanged)
+    Q_PROPERTY(QmlObjectListModel* actuatorActions         READ actuatorActions           NOTIFY actuatorActionsChanged)
     Q_PROPERTY(bool isMultirotor                           READ isMultirotor              CONSTANT)
     Q_PROPERTY(bool imageRefreshFlag                       READ imageRefreshFlag          NOTIFY imageRefreshFlagChanged)
     Q_PROPERTY(bool hasUnsetRequiredFunctions              READ hasUnsetRequiredFunctions NOTIFY hasUnsetRequiredFunctionsChanged)
@@ -59,6 +60,7 @@ public:
 
     bool showUi() const;
 
+    QmlObjectListModel* actuatorActions() { return _actuatorActions; }
 
     Q_INVOKABLE bool initMotorAssignment();
     Q_INVOKABLE void startMotorAssignment();
@@ -77,11 +79,14 @@ signals:
     void hasUnsetRequiredFunctionsChanged();
     void motorAssignmentActiveChanged();
     void motorAssignmentMessageChanged();
+    void actuatorActionsChanged();
 
 private:
     void parseJson(const QJsonDocument& json);
 
     void updateAirframeImage();
+
+    void updateActuatorActions();
 
     void subscribeFact(Fact* fact);
 
@@ -93,6 +98,7 @@ private:
     bool _hasMetadata{false};
     Condition _showUi;
     QmlObjectListModel* _actuatorOutputs = new QmlObjectListModel(this); ///< list of ActuatorOutputs::ActuatorOutput*
+    QmlObjectListModel* _actuatorActions = new QmlObjectListModel(this); ///< list of ActuatorActionGroup*
     ActuatorTesting::ActuatorTestController _actuatorTestController;
     Mixer::MixerController _mixerController;
     MotorAssignmentController _motorAssignmentController;

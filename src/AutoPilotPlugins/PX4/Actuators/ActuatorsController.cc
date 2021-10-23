@@ -227,7 +227,59 @@ void ActuatorsController::parametersChanged()
     }
     emit hasUnsetRequiredFunctionsChanged();
 
+    updateActuatorActions();
+
     updateAirframeImage();
+}
+
+void ActuatorsController::updateActuatorActions()
+{
+    _actuatorActions->clearAndDeleteContents();
+    QSet<int> addedFunctions;
+    for (int groupIdx = 0; groupIdx < _actuatorOutputs->count(); groupIdx++) {
+        ActuatorOutput* group = qobject_cast<ActuatorOutput*>(_actuatorOutputs->get(groupIdx));
+
+        group->forEachOutputFunction([&](ActuatorOutputSubgroup* subgroup, ChannelConfigInstance*, Fact* fact) {
+            int outputFunctionVal = fact->rawValue().toInt();
+            if (outputFunctionVal != 0 && !addedFunctions.contains(outputFunctionVal)) {
+                auto outputFunctionIter = _mixerController.functions().find(outputFunctionVal);
+                if (outputFunctionIter != _mixerController.functions().end()) {
+                    const Mixer::MixerController::OutputFunction& outputFunction = outputFunctionIter.value();
+                    for (const auto& action : subgroup->actions()) {
+                        if (!action.condition.evaluate()) {
+                            continue;
+                        }
+                        if (!action.actuatorTypes.empty() && action.actuatorTypes.find(outputFunction.actuatorType) == action.actuatorTypes.end()) {
+                            continue;
+                        }
+
+                        // add the action
+                        auto actuatorAction = new ActuatorActions::Action(this, action, outputFunction.label, outputFunctionVal, _vehicle);
+                        ActuatorActions::ActionGroup* actionGroup = nullptr;
+                        // try to find the group
+                        for (int groupIdx = 0; groupIdx < _actuatorActions->count(); groupIdx++) {
+                            ActuatorActions::ActionGroup* curActionGroup =
+                                    qobject_cast<ActuatorActions::ActionGroup*>(_actuatorActions->get(groupIdx));
+                            if (curActionGroup->type() == action.type) {
+                                actionGroup = curActionGroup;
+                                break;
+                            }
+                        }
+
+                        if (!actionGroup) {
+                            QString groupLabel = action.typeToLabel();
+                            actionGroup = new ActuatorActions::ActionGroup(this, groupLabel, action.type);
+                            _actuatorActions->append(actionGroup);
+                        }
+                        actionGroup->addAction(actuatorAction);
+                        addedFunctions.insert(outputFunctionVal);
+                    }
+                }
+            }
+        });
+    }
+
+    emit actuatorActionsChanged();
 }
 
 void ActuatorsController::parseJson(const QJsonDocument &json)
@@ -285,6 +337,33 @@ void ActuatorsController::parseJson(const QJsonDocument &json)
             QString subgroupLabel = subgroup["label"].toString();
             ActuatorOutputSubgroup* actuatorSubgroup = new ActuatorOutputSubgroup(this, subgroupLabel);
             currentActuatorOutput->addSubgroup(actuatorSubgroup);
+
+            QJsonValue supportedActions = subgroup["supported-actions"];
+            if (!supportedActions.isNull()) {
+                QJsonObject supportedActionsObj = supportedActions.toObject();
+                for (const auto& actionName : supportedActionsObj.keys()) {
+                    QJsonObject actionObj = supportedActionsObj.value(actionName).toObject();
+                    ActuatorActions::Config action{};
+                    bool knownAction = true;
+                    if (actionName == "set-spin-reversed") {
+                        action.type = ActuatorActions::Config::Type::setSpinReversed;
+                    } else if (actionName == "set-spin-normal") {
+                        action.type = ActuatorActions::Config::Type::setSpinNormal;
+                    } else {
+                        knownAction = false;
+                        qCWarning(ActuatorsConfigLog) << "Unknown 'supported-actions':" << actionName;
+                    }
+                    if (knownAction) {
+                        QJsonArray actuatorTypesArr = actionObj["actuator-types"].toArray();
+                        for (const auto &type : actuatorTypesArr) {
+                            action.actuatorTypes.insert(type.toString());
+                        }
+                        action.condition = Condition(actionObj["supported-if"].toString(), _vehicle->parameterManager());
+                        subscribeFact(action.condition.fact());
+                        actuatorSubgroup->addAction(action);
+                    }
+                }
+            }
 
             QJsonArray parameters = subgroup["parameters"].toArray();
             for (const auto& parameterJson : parameters) {

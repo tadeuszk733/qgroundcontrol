@@ -1164,6 +1164,7 @@ PX4FirmwarePlugin {
         src/FirmwarePlugin/PX4 \
 
     HEADERS+= \
+        src/AutoPilotPlugins/PX4/Actuators/ActuatorActions.h \
         src/AutoPilotPlugins/PX4/Actuators/ActuatorComponent.h \
         src/AutoPilotPlugins/PX4/Actuators/ActuatorsController.h \
         src/AutoPilotPlugins/PX4/Actuators/ActuatorOutputs.h \
@@ -1193,6 +1194,7 @@ PX4FirmwarePlugin {
         src/FirmwarePlugin/PX4/PX4ParameterMetaData.h \
 
     SOURCES += \
+        src/AutoPilotPlugins/PX4/Actuators/ActuatorActions.cc \
         src/AutoPilotPlugins/PX4/Actuators/ActuatorComponent.cc \
         src/AutoPilotPlugins/PX4/Actuators/ActuatorsController.cc \
         src/AutoPilotPlugins/PX4/Actuators/ActuatorOutputs.cc \

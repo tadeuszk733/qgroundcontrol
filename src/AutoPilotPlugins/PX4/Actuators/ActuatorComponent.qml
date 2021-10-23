@@ -262,6 +262,39 @@ SetupPage {
                                 }
                             } // Repeater
                         } // Row
+
+                        // actuator actions
+                        Column {
+                            visible: _actuatorsController.actuatorActions.count > 0
+                            enabled: !safetySwitch.checked && !_actuatorsController.motorAssignmentActive
+                            Row {
+                                spacing: ScreenTools.defaultFontPixelWidth * 2
+                                Repeater {
+                                    model: _actuatorsController.actuatorActions
+
+                                    QGCButton {
+                                        property var actionGroup: object
+                                        text:          actionGroup.label
+                                        onClicked:     actionMenu.popup()
+                                        QGCMenu {
+                                            id:                 actionMenu
+
+                                            Instantiator {
+                                                model:              actionGroup.actions
+                                                QGCMenuItem {
+                                                    text:           object.label
+                                                    onTriggered:	object.trigger()
+                                                }
+                                                onObjectAdded:      actionMenu.insertItem(index, object)
+                                                onObjectRemoved:    actionMenu.removeItem(object)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                        } // Column
+
                     } // Column
                 } // Rectangle
             }
