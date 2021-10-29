@@ -425,6 +425,9 @@ contains (DEFINES, QGC_ENABLE_PAIRING) {
 #
 
 HEADERS += \
+    src/Joystick/blefinder.h \
+    src/Joystick/gamesirt1d.h \
+    src/Joystick/joystickBLE.h \
     src/QmlControls/QmlUnitsConversion.h \
     src/Vehicle/VehicleEscStatusFactGroup.h \
     src/api/QGCCorePlugin.h \
@@ -439,6 +442,9 @@ contains (DEFINES, QGC_ENABLE_PAIRING) {
 }
 
 SOURCES += \
+    src/Joystick/blefinder.cc \
+    src/Joystick/gamesirt1d.cc \
+    src/Joystick/joystickBLE.cc \
     src/Vehicle/VehicleEscStatusFactGroup.cc \
     src/api/QGCCorePlugin.cc \
     src/api/QGCOptions.cc \
